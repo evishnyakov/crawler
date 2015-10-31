@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+	<a href="http://www.test.net/">		#1: another site</a>
+	<a href="page2.htm">				#2: the same site</a>
+	<a href="../page1.htm">				#3: the same site other page</a>
+	<a href="#heading1">				#4: the same page</a>
+	<a href="mailto:nobody@html.net">   #5: not a link</a>
+	
+	<a href="./page2.htm">				#6: repeat #2</a>
+    <a href="./../page1.htm">			#7: repeat #3</a>
+    <a href=".././page1.htm">			#8: repeat #3</a>
+
+    <a href="https://www.test.net/">	#9: repeat #1</a>
+    <a href="http://test.net/">			#10: repeat #1</a>
+    <a href="https://test.net/">		#11: repeat #1</a>
+    <a href="http://www.test.net:80/">	#12: repeat #1</a>
+        
+    <a href="http://www.test.net/t1.html">		#13: another page of site</a>
+    <a href="http://www.test.net/t1.html?a=1">	#14: repeat #13</a>
+    <a href="http://www.test.net/t1.html?a=2">	#15: repeat #13</a>
+    
+    <a href="http://www.test.net:8080/">		#16: another site with port</a>
+</body>
+</html>
+
