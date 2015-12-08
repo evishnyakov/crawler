@@ -26,13 +26,14 @@ public class WebPageLink implements IWebPageLink {
 	@Override
 	public String getHost() {
 		try {
-			String host = Strings.nullToEmpty(URI.create(URIUtil.encodeQuery(url, "UTF-8")).getHost());
-			int ix1 = host.lastIndexOf('.');
-			int ix2 = ix1 > 0 ? host.lastIndexOf('.', ix1 - 1) : -1;
-			if(ix2 > -1) {
-				host = host.substring(ix2+1);
-			}
-			return host;
+			return Strings.nullToEmpty(URI.create(URIUtil.encodeQuery(url, "UTF-8")).getHost());
+//			String host = Strings.nullToEmpty(URI.create(URIUtil.encodeQuery(url, "UTF-8")).getHost());
+//			int ix1 = host.lastIndexOf('.');
+//			int ix2 = ix1 > 0 ? host.lastIndexOf('.', ix1 - 1) : -1;
+//			if(ix2 > -1) {
+//				host = host.substring(ix2+1);
+//			}
+//			return host;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

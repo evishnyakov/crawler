@@ -3,6 +3,7 @@ package org.company.crawler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import org.company.crawler.parse.IWebPageDocumentRetriveStrategy;
@@ -14,8 +15,6 @@ import org.jsoup.nodes.Document;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Evgeniy Vishnyakov
  */
@@ -23,19 +22,25 @@ public class WebPageParserTest {
 
 	private class TestWebPageDocumentRetriveStrategy implements IWebPageDocumentRetriveStrategy {
 		@Override
-		public Document getDocument(IWebPageLink webPageLink) throws Exception {
-			File file = new File(getFileURL(webPageLink.getURI()).toURI());
-			return Jsoup.parse(new FileInputStream(file), "UTF-8", "http://www.fake.com");
+		public Document getDocument(IWebPageLink webPageLink) {
+			try {
+				File file = new File(getFileURL(webPageLink.getURI()).toURI());
+				return Jsoup.parse(new FileInputStream(file), "UTF-8", "http://www.fake.com");	
+			} catch(Exception e) {
+				throw new RuntimeException(e);
+			}
 		}		
 	}
 	
 	@Test
 	public void parseHtml() throws Exception  {
-		List<IWebPageLink> links = new WebPageParser(
-			new TestWebPageDocumentRetriveStrategy()).parse(new WebPageLink("links_test.html"));
+		WebPageParser webPageParser = 
+				new WebPageParser(new TestWebPageDocumentRetriveStrategy(), new WebPageLink("links_test.html"));
+		webPageParser.parse();
+		List<IWebPageLink> links = webPageParser.getLinks(); 
 
 		Assert.assertEquals(6, links.size());
-		ImmutableList<String> list = ImmutableList.of(
+		List<String> list = Arrays.asList(
 			"http://www.test.net/",
 			"http://www.fake.com/page2.htm",
 			"http://www.fake.com/../page1.htm",

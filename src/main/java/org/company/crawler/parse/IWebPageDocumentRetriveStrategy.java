@@ -8,6 +8,6 @@ import org.jsoup.nodes.Document;
  */
 public interface IWebPageDocumentRetriveStrategy {
 
-	Document getDocument(IWebPageLink webPageLink) throws Exception;
+	Document getDocument(IWebPageLink webPageLink) throws WebPageParseException;
 	
 }

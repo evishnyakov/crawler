@@ -1,13 +1,13 @@
-package org.company.crawler.parse;
+package org.company.crawler;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.Collection;
 
 import org.company.crawler.web.WebLinksInputStreamReader;
-import org.company.crawler.web.WebPageCrawler;
 import org.company.crawler.web.link.IWebPageLink;
 
 import com.google.common.io.Closeables;
@@ -25,18 +25,19 @@ public class CrawlerApp {
 		try {
 			in = new FileInputStream(file);
 			long curm = System.currentTimeMillis();
-			Iterator<IWebPageLink> linksIt = new WebLinksInputStreamReader().readLinks(in);
 			WebPageCrawler webPageCrawler = new WebPageCrawler();
-			webPageCrawler.run(linkProcessor -> {
-				while(linksIt.hasNext()) {
-					IWebPageLink nextLink = linksIt.next();
-					linkProcessor.process(nextLink);
-				}
+			webPageCrawler.run(new WebLinksInputStreamReader().readLinks(in));
+			
+			PrintWriter writer = new PrintWriter(new File("crawler-result.txt"), "UTF-8");
+			Collection<IWebPageLink> foundLinks = webPageCrawler.getFoundLinks();
+			foundLinks.forEach(link -> {
+				writer.write(link.getURI());
+				writer.write("\n");
 			});
-			webPageCrawler.getFoundLinks().forEach(link -> {
-				System.out.println(link.getURI());
-			});
-			System.out.println("TIME: " + (System.currentTimeMillis() - curm));
+			writer.write(" ===============  \n");
+			writer.write("TOTAL:  " + foundLinks.size() + "\n");
+			writer.write("TIME: " + (System.currentTimeMillis() - curm));
+			writer.close();
 		} finally {
 			Closeables.closeQuietly(in);
 		}

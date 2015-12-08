@@ -1,63 +1,62 @@
 package org.company.crawler.web;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.company.crawler.web.link.IWebPageLink;
 
-import com.google.common.collect.Maps;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 /**
  * @author Evgeniy Vishnyakov
  */
-class WebLinksStorage {
+public class WebLinksStorage {
 	
-	private Set<IWebPageLink> links = Sets.newHashSet();
-	private Map<String, Integer> host2Count = Maps.newHashMap();
-	private ReadWriteLock lock = new ReentrantReadWriteLock();
+	private ConcurrentMap<String, Set<IWebPageLink>> host2links = new ConcurrentHashMap<>();
+	private final int linksFromHostLimit;
 
-	public Collection<IWebPageLink> getLinkes() {
-		lock.readLock().lock();
-		try {
-			return Sets.newHashSet(links);
-		} finally {
-			lock.readLock().unlock();
-		}
+	/**
+	 * @param linksFromHostLimit max number of links from one host that storage can contain.
+	 */
+	public WebLinksStorage(int linksFromHostLimit) {
+		Preconditions.checkArgument(linksFromHostLimit > 0);
+		this.linksFromHostLimit = linksFromHostLimit;
 	}
 	
-	public void storeWebPageLink(IWebPageLink link) {
-		lock.writeLock().lock();
-		try {
-			links.add(link);
-			String host = link.getHost();
-			Integer count = host2Count.get(host);
-			if(count == null) {
-				count = 1;
-			} else {
-				count++;
+	public boolean canStore(IWebPageLink link) {
+		host2links.putIfAbsent(link.getHost(), Sets.newLinkedHashSet());
+		Set<IWebPageLink> links = host2links.get(link.getHost());
+		synchronized (links) {
+			if(links.size() < linksFromHostLimit) {
+				return true;
 			}
-			host2Count.put(host, count);
-		} finally {
-			lock.writeLock().unlock();
+			return !links.contains(link);
 		}
 	}
 	
-	public boolean shouldProcess(IWebPageLink link) {
-		lock.readLock().lock();
-		try {
-			if(links.contains(link)) {
+	public boolean storeWebPageLink(IWebPageLink link) {
+		host2links.putIfAbsent(link.getHost(), Sets.newLinkedHashSet());
+		Set<IWebPageLink> links = host2links.get(link.getHost());
+		synchronized (links) {
+			if(links.size() >= linksFromHostLimit) {
 				return false;
 			}
-			String host = link.getHost();
-			Integer count = host2Count.get(host);
-			return count == null || count < 100;
-		} finally {
-			lock.readLock().unlock();
+			return links.add(link);
 		}
+	}
+
+	public Collection<IWebPageLink> getLinkes() {
+		Collection<IWebPageLink> resuls = new ArrayList<IWebPageLink>();
+		host2links.forEach((host, links) -> {
+			synchronized (links) {
+				resuls.addAll(links);
+			}
+		});
+		return resuls;
 	}
 	
 }

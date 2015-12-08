@@ -12,14 +12,19 @@ import org.jsoup.nodes.Document;
 public class DefaultWebPageDocumentRetriveStrategy implements IWebPageDocumentRetriveStrategy {
 
 	@Override
-	public Document getDocument(IWebPageLink webPageLink) throws Exception {
+	public Document getDocument(IWebPageLink webPageLink) throws WebPageParseException {
 		Connection connection = Jsoup.connect(webPageLink.getURI());
 		connection.request().method(Method.GET);
-		org.jsoup.Connection.Response response = connection.execute();
-		if(!response.contentType().contains("text/html")) {
-			return null;
+		connection.request().timeout(5000);
+		try {
+			org.jsoup.Connection.Response response = connection.execute();
+			if(response.contentType().contains("text/html")) {
+				return response.parse();
+			}
+		} catch(Exception e) {
+			throw new WebPageParseException(e.getMessage(), e);
 		}
-		return response.parse();
+		throw new WebPageParseException("Content type is not a text/html");
 	}
 
 }
